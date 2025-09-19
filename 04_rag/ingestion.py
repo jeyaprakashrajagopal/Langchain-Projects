@@ -1,16 +1,19 @@
 import os
+
 from dotenv import load_dotenv
-from langchain_text_splitters import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
+from langchain_text_splitters import CharacterTextSplitter
 
 load_dotenv()
 
 if __name__ == "__main__":
     print("RAG")
     # Step 1 Ingestion : load the text from the file
-    loader = TextLoader("/Users/jeyaprakashrajagopal/PythonProjects/Langchain-Projects/04_rag/medium_blog.txt")
+    loader = TextLoader(
+        "/Users/jeyaprakashrajagopal/PythonProjects/Langchain-Projects/04_rag/medium_blog.txt"
+    )
     document = loader.load()
 
     # Step 2: split document into chunks without any context shared between chunks
@@ -21,4 +24,6 @@ if __name__ == "__main__":
     embeddings = OpenAIEmbeddings(openai_api_key=os.environ.get("OPENAI_API_KEY"))
 
     # Step 4 ingesting : generate and store embeddings
-    PineconeVectorStore.from_documents(documents=texts, embedding=embeddings, index_name=os.environ["INDEX_NAME"])
+    PineconeVectorStore.from_documents(
+        documents=texts, embedding=embeddings, index_name=os.environ["INDEX_NAME"]
+    )
