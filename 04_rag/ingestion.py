@@ -5,6 +5,9 @@ from langchain_community.document_loaders import TextLoader
 from langchain_openai.embeddings import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain_text_splitters import CharacterTextSplitter
+from pathlib import Path
+
+PKG_ROOT = Path(__file__).resolve().parent.parent
 
 load_dotenv()
 
@@ -12,7 +15,7 @@ if __name__ == "__main__":
     print("RAG")
     # Step 1 Ingestion : load the text from the file
     loader = TextLoader(
-        "/Users/jeyaprakashrajagopal/PythonProjects/Langchain-Projects/04_rag/medium_blog.txt"
+        PKG_ROOT / "04_rag" / "medium_blog.txt"
     )
     document = loader.load()
 
