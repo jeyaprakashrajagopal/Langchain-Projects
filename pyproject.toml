@@ -19,4 +19,5 @@ dependencies = [
     "tavily-python>=0.7.17",
     "langchainhub>=0.1.21",
     "pypdf>=6.1.0",
+    "langchain-classic>=1.0.1",
 ]
