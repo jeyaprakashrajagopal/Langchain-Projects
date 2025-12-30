@@ -1,59 +1,35 @@
 import os
-from typing import List
 
 from dotenv import load_dotenv
-from langchain.prompts import PromptTemplate
-from langchain_core.documents import Document
-from langchain_core.runnables import RunnablePassthrough
+from langchain import hub
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
 load_dotenv()
 
-
-def format_documents(documents: List[Document]):
-    """Formats list of documents of type Document to a string representation"""
-    return "\n\n".join([document.page_content for document in documents])
-
-
 if __name__ == "__main__":
     print("Retrieving...")
 
-    # Create instances of llm and embeddings
-    llm = ChatOpenAI(model="gpt-4o-mini")
-    embeddings = OpenAIEmbeddings()
-
-    prompt = """
-    Please answer the question solely based on the context given below.
-    Return you don't the answer if the question is not answerable with the context given below and do not generate any answers by yourself.
-    Always say thanks for asking after the answer is shown.
-
-    {context}
-
-    user input: {question}
-
-    Helpful answer: 
-    """
+    prompt = hub.pull("langchain-ai/retrieval-qa-chat")
 
     query = "What is pinecone in machine learning?"
-    # Load PromptTemplate
-    prompt = PromptTemplate.from_template(template=prompt)
+    embeddings = OpenAIEmbeddings()
 
-    # PineCone vector store instance
+    llm = ChatOpenAI(model="gpt-4o-mini")
+
     vector_store = PineconeVectorStore(
         index_name=os.environ["INDEX_NAME"], embedding=embeddings
     )
-
-    # Chain the actions together where output of retriever with relevant documents are formatted
-    chain = (
-        {
-            "context": vector_store.as_retriever() | format_documents,
-            "question": RunnablePassthrough(),
-        }
-        | prompt
-        | llm
+    # Chain creation to pass the formatted documents to the model. Basically fills in the context and returns chain.
+    combined_documents_chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
+    # Chain that executes retrieval of relevant documents, then execute the complete chain upon invocation
+    retrieval_chain = create_retrieval_chain(
+        retriever=vector_store.as_retriever(),
+        combine_docs_chain=combined_documents_chain,
     )
 
-    result = chain.invoke(query)
+    result = retrieval_chain.invoke(input={"input": query})
 
-    print(result.content)
+    print(result)
