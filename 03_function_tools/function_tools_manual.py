@@ -26,7 +26,7 @@ agent = llm_with_tools
 
 
 def main():
-    print("Hello from langchain-projects!")
+    print("Function tools Manual implementation!")
 
     messages = [
         HumanMessage(
